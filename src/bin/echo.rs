@@ -3,6 +3,7 @@ use rustengan::*;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::io::{StdoutLock, Write};
+use std::sync::mpsc::Sender;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -17,11 +18,18 @@ struct EchoNode {
 }
 
 impl Node<(), Payload> for EchoNode {
-    fn from_init(_state: (), _init: rustengan::Init) -> anyhow::Result<Self> {
+    fn from_init(
+        _state: (),
+        _init: rustengan::Init,
+        _tx: Sender<Event<Payload>>,
+    ) -> anyhow::Result<Self> {
         Ok(EchoNode { id: 1 })
     }
 
-    fn step(&mut self, input: Message<Payload>, output: &mut StdoutLock) -> anyhow::Result<()> {
+    fn step(&mut self, input: Event<Payload>, output: &mut StdoutLock) -> anyhow::Result<()> {
+        let Event::Message(input) = input else {
+            panic!("err");
+        };
         let mut reply = input.into_reply(Some(&mut self.id));
         match reply.body.payload {
             Payload::Echo { echo } => {
@@ -38,5 +46,5 @@ impl Node<(), Payload> for EchoNode {
 }
 
 fn main() -> anyhow::Result<()> {
-    main_loop::<_, EchoNode, _>(())
+    main_loop::<_, EchoNode, _, _>(())
 }
