@@ -1,11 +1,10 @@
 use rustengan::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::io::StdoutLock;
 use std::sync::mpsc::Sender;
-use std::sync::RwLock;
 use std::thread;
 use std::time::Duration;
 
@@ -38,7 +37,7 @@ impl Node<(), Payload, InjectedPayload> for CounterNode {
         tx: Sender<Event<Payload, InjectedPayload>>,
     ) -> anyhow::Result<Self> {
         thread::spawn(move || loop {
-            thread::sleep(Duration::from_millis(100));
+            thread::sleep(Duration::from_millis(500));
             if let Err(_) = tx.send(Event::Injected(InjectedPayload::Replicate)) {
                 break;
             }
